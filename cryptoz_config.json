@@ -1,0 +1,14 @@
+{
+    "security": {
+        "default_algorithm": "fernet",
+        "key_derivation_iterations": 310000,
+        "password_length": 16
+    },
+    "ui": {
+        "show_password_strength": true,
+        "confirm_before_operations": true
+    },
+    "files": {
+        "default_output_extension": ".encrypted"
+    }
+}

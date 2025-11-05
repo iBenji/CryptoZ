@@ -60,27 +60,27 @@ A powerful, modern encryption utility built with Dear PyGui that provides multip
 ### Step-by-Step Installation
 ## Method 1: From Source
 1. **Clone or download the project**
-   ```
+   ```bash
    git clone <repository-url>
    cd CryptoZ
-   ```
-3. **Install dependencies**
-   ```
+
+2. **Install dependencies**
+  ```bash
    pip install -r requirements.txt
-   ```
-5. **Run the application**
-   ```
+
+3. **Run the application**
+  ```bash
    python main.py
-   ```
+
 ## Method 2: Standalone Executable (Recommended)
 1. **Build the executable**
-   ```
+   ```bash
    python build.py
-   ```
-3. **Find the executable in the [dist] folder**
-   ```
+
+2. **Find the executable in the [dist] folder**
+  ```bash
    The executable contains all dependencies and is ready to run
-   ```
+
 ## 🛠️ Usage
 
 ### File Encryption Tab
@@ -108,7 +108,6 @@ A powerful, modern encryption utility built with Dear PyGui that provides multip
 3. View Results: See detailed analysis including confidence scores
 
 ## 🏗️ Project Structure
-```
 CryptoZ/
 ├── main.py                 # Application entry point
 ├── create_icon.py          # Icon generation utility
@@ -126,7 +125,7 @@ CryptoZ/
 │   └── main_window.py    # User interface
 └── config/
     └── settings.py       # Configuration management
-```
+
 ## 🔒 Security Features
 ### Key Derivation
 - PBKDF2-HMAC-SHA256 with configurable iterations (default: 310,000)
@@ -147,7 +146,6 @@ CryptoZ/
 
 ### Configuration
 The application settings can be customized in cryptoz_config.json:
-```
 {
   "security": {
     "default_algorithm": "fernet",
@@ -163,20 +161,20 @@ The application settings can be customized in cryptoz_config.json:
     "max_file_size_mb": 100
   }
 }
-```
+
 ## 🐛 Troubleshooting
 ### Common Issues
-# File not found errors
+File not found errors
 - Ensure file paths are accessible
 - Check read/write permissions
 - Verify file exists
 
-# Encryption/decryption failures
+Encryption/decryption failures
 - Confirm correct password
 - Check algorithm compatibility
 - Verify file integrity
 
-# Application crashes
+Application crashes
 - Ensure all dependencies are installed
 - Check system resources
 - Review log files in logs/ directory
