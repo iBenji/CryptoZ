@@ -6,6 +6,8 @@
 
 A powerful, modern encryption utility built with Dear PyGui that provides multiple encryption algorithms for files, messages, and source code protection.
 
+![file enc](https://github.com/user-attachments/assets/4687a182-1f0d-454b-bf26-6ba225aa47c1)
+
 ## 🚀 Features
 
 ### 🔐 Multi-Algorithm Support
@@ -201,5 +203,6 @@ We welcome contributions! Please:
 4. Test thoroughly
 
 5. Submit a pull request
+
 
 
