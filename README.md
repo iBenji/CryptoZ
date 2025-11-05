@@ -61,7 +61,7 @@ A powerful, modern encryption utility built with Dear PyGui that provides multip
 ## Method 1: From Source
 1. **Clone or download the project**
    ```
-   git clone [<repository-url>](https://github.com/iBenji/CryptoZ.git)
+   git clone https://github.com/iBenji/CryptoZ.git
    cd CryptoZ
    ```
 2. **Install dependencies**
@@ -201,4 +201,5 @@ We welcome contributions! Please:
 4. Test thoroughly
 
 5. Submit a pull request
+
 
