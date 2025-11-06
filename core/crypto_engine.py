@@ -3,9 +3,10 @@ import base64
 import hashlib
 import math
 import logging
+from pathlib import Path
 import secrets
 from collections import Counter
-from typing import Tuple, Dict, Any, Optional
+from typing import List, Tuple, Dict, Any, Optional
 from functools import lru_cache
 from threading import Lock
 
@@ -761,6 +762,153 @@ class CryptoEngine:
                 available[name] = info
         return available
     
+    def encrypt_folder(self, folder_path: str, output_path: str, password: str, 
+                      algorithm: str = 'fernet', file_patterns: List[str] = None) -> Dict[str, Any]:
+        """Encrypt entire folder with progress tracking"""
+        try:
+            if not os.path.exists(folder_path):
+                raise FileNotFoundError(f"Folder not found: {folder_path}")
+            
+            if not os.path.isdir(folder_path):
+                raise ValueError(f"Path is not a directory: {folder_path}")
+            
+            # Create output directory if it doesn't exist
+            os.makedirs(output_path, exist_ok=True)
+            
+            # Default file patterns
+            if file_patterns is None:
+                file_patterns = ['*']
+            
+            # Collect all files
+            all_files = []
+            for pattern in file_patterns:
+                pattern_files = list(Path(folder_path).rglob(pattern))
+                all_files.extend([f for f in pattern_files if f.is_file()])
+            
+            if not all_files:
+                return {
+                    'success': False,
+                    'processed': 0,
+                    'total': 0,
+                    'errors': [],
+                    'message': 'No files found matching patterns'
+                }
+            
+            # Process files
+            processed = 0
+            errors = []
+            
+            for file_path in all_files:
+                try:
+                    # Calculate relative path for output
+                    relative_path = file_path.relative_to(folder_path)
+                    output_file = Path(output_path) / relative_path
+                    
+                    # Create output directory structure
+                    output_file.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Encrypt file
+                    success = self.encrypt_file(
+                        str(file_path), 
+                        str(output_file) + '.encrypted',
+                        password, 
+                        algorithm
+                    )
+                    
+                    if success:
+                        processed += 1
+                    else:
+                        errors.append(f"Failed to encrypt: {file_path}")
+                        
+                except Exception as e:
+                    errors.append(f"Error processing {file_path}: {str(e)}")
+            
+            return {
+                'success': len(errors) == 0,
+                'processed': processed,
+                'total': len(all_files),
+                'errors': errors,
+                'message': f"Processed {processed}/{len(all_files)} files"
+            }
+            
+        except Exception as e:
+            logging.error(f"Folder encryption error: {e}")
+            return {
+                'success': False,
+                'processed': 0,
+                'total': 0,
+                'errors': [str(e)],
+                'message': f"Folder encryption failed: {str(e)}"
+            }
+    
+    def decrypt_folder(self, folder_path: str, output_path: str, password: str, 
+                      algorithm: str = 'fernet') -> Dict[str, Any]:
+        """Decrypt entire folder"""
+        try:
+            if not os.path.exists(folder_path):
+                raise FileNotFoundError(f"Folder not found: {folder_path}")
+            
+            # Create output directory
+            os.makedirs(output_path, exist_ok=True)
+            
+            # Find all encrypted files
+            encrypted_files = list(Path(folder_path).rglob('*.encrypted'))
+            
+            if not encrypted_files:
+                return {
+                    'success': False,
+                    'processed': 0,
+                    'total': 0,
+                    'errors': [],
+                    'message': 'No encrypted files found'
+                }
+            
+            processed = 0
+            errors = []
+            
+            for encrypted_file in encrypted_files:
+                try:
+                    # Calculate relative path and remove .encrypted extension
+                    relative_path = encrypted_file.relative_to(folder_path)
+                    output_file_path = Path(output_path) / relative_path.with_suffix('')
+                    
+                    # Create output directory
+                    output_file_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Decrypt file
+                    success = self.decrypt_file(
+                        str(encrypted_file),
+                        str(output_file_path),
+                        password,
+                        algorithm
+                    )
+                    
+                    if success:
+                        processed += 1
+                    else:
+                        errors.append(f"Failed to decrypt: {encrypted_file}")
+                        
+                except Exception as e:
+                    errors.append(f"Error processing {encrypted_file}: {str(e)}")
+            
+            return {
+                'success': len(errors) == 0,
+                'processed': processed,
+                'total': len(encrypted_files),
+                'errors': errors,
+                'message': f"Decrypted {processed}/{len(encrypted_files)} files"
+            }
+            
+        except Exception as e:
+            logging.error(f"Folder decryption error: {e}")
+            return {
+                'success': False,
+                'processed': 0,
+                'total': 0,
+                'errors': [str(e)],
+                'message': f"Folder decryption failed: {str(e)}"
+            }
+
     def cleanup(self):
         """Secure cleanup of sensitive data"""
         with self._cache_lock:
