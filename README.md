@@ -1,6 +1,6 @@
 # CryptoZ - Advanced Encryption Tool
 
-![CryptoZ](https://img.shields.io/badge/Version-2.1.5-blue)
+![CryptoZ](https://img.shields.io/badge/Version-2.1.6S-blue)
 ![Python](https://img.shields.io/badge/Python-3.1B-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
@@ -52,6 +52,31 @@ A powerful, modern encryption utility built with Dear PyGui that provides multip
 - Password strength assessment
 - Key derivation with configurable iterations
 - Secure memory handling
+
+### Policy System
+- Creating encryption policies with rules
+- Policy management (create, delete, enable/disable)
+- Automatic application to files and folders
+- Flexible targets - single files, folders, path lists
+- File pattern support for filtering
+- Visual management through intuitive interface
+
+### Batch Operations (Folder Encryption)
+- Recursive folder processing with pattern matching
+- Progress tracking and real-time status updates
+- Error handling with detailed error reporting
+- Preservation of directory structure
+- Background processing to keep UI responsive
+- Comprehensive logging of all operations
+- 
+### Steganography cryptor and analyzer
+- Data hiding in images - LSB and enhanced LSB methods
+- Data hiding in audio - WAV files
+- Encryption before hiding - additional protection
+- Hidden data extraction - with decryption support
+- File analysis - steganography detection
+- Capacity calculation - automatic hiding possibility check
+- Multiple format support - PNG, JPG, BMP, WAV
 
 ## 🛠️ Installation
 
@@ -203,6 +228,7 @@ We welcome contributions! Please:
 4. Test thoroughly
 
 5. Submit a pull request
+
 
 
 
