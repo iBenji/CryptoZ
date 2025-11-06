@@ -6,7 +6,8 @@
 
 A powerful, modern encryption utility built with Dear PyGui that provides multiple encryption algorithms for files, messages, and source code protection.
 
-![file enc](https://github.com/user-attachments/assets/4687a182-1f0d-454b-bf26-6ba225aa47c1)
+<img width="883" height="567" alt="ttt" src="https://github.com/user-attachments/assets/02e39dd9-f870-4f85-b09c-c72643e382b2" />
+<img width="883" height="567" alt="ttts" src="https://github.com/user-attachments/assets/022ccf3c-9426-494c-9704-165acb9878a4" />
 
 ## 🚀 Features
 
@@ -68,7 +69,7 @@ A powerful, modern encryption utility built with Dear PyGui that provides multip
 - Preservation of directory structure
 - Background processing to keep UI responsive
 - Comprehensive logging of all operations
-- 
+  
 ### Steganography cryptor and analyzer
 - Data hiding in images - LSB and enhanced LSB methods
 - Data hiding in audio - WAV files
@@ -228,6 +229,7 @@ We welcome contributions! Please:
 4. Test thoroughly
 
 5. Submit a pull request
+
 
 
 
