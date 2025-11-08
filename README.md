@@ -5,6 +5,8 @@
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
 ![GUI](https://img.shields.io/badge/GUI-Dear%20PyGUI-purple)
+<img width="885" height="365" alt="prev" src="https://github.com/user-attachments/assets/2ee4f69c-49f8-4437-9572-68634f9c3065" />
+<img width="883" height="319" alt="prev2" src="https://github.com/user-attachments/assets/5fbb3811-ffbc-4ac8-b269-19c29423d5b6" />
 
 > 🔐 **From file encryption to policy-driven security — CryptoZ is your all-in-one cryptographic toolkit.**
 
@@ -147,3 +149,4 @@ python main.py
 ```bash
 python build.py
 # → Executable in /dist (Windows)
+
