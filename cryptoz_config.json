@@ -1,14 +1,57 @@
 {
+    "files": {
+        "allowed_extensions": [
+            ".txt",
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".xls",
+            ".xlsx"
+        ],
+        "auto_backup_before_encryption": true,
+        "default_output_extension": ".encrypted",
+        "max_file_size_mb": 100
+    },
+    "logging": {
+        "backup_count": 5,
+        "level": "INFO",
+        "max_file_size_mb": 10
+    },
+    "performance": {
+        "cache_size": 100,
+        "enable_key_caching": true,
+        "parallel_operations": false
+    },
+    "secure_folder": {
+        "algorithm": "aes_gcm"
+    },
     "security": {
         "default_algorithm": "fernet",
         "key_derivation_iterations": 310000,
-        "password_length": 16
+        "max_password_length": 128,
+        "min_password_length": 8,
+        "password_length": 16,
+        "secure_memory_clearing": true,
+        "session_timeout_minutes": 30
+    },
+    "statistics": {
+        "general": {
+            "last_backup": null,
+            "total_files_encrypted": 0,
+            "total_messages_encrypted": 0
+        },
+        "secure_folder": {
+            "files_decrypted": 0,
+            "files_encrypted": 1,
+            "last_session": "2025-11-08 19:05",
+            "sessions_count": 2
+        }
     },
     "ui": {
+        "auto_clear_passwords": true,
+        "confirm_before_operations": true,
+        "language": "en",
         "show_password_strength": true,
-        "confirm_before_operations": true
-    },
-    "files": {
-        "default_output_extension": ".encrypted"
+        "theme": "dark"
     }
 }

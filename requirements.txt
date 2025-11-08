@@ -1,4 +1,8 @@
-cryptography>=41.0.0
-pycryptodome>=3.19.0
+# CryptoZ - Advanced Encryption & Security Suite
+# Core Dependencies
+
+cryptography>=46.0.3
+pycryptodome>=3.23.0
 dearpygui>=2.1.0
-Pillow>=10.0.0
+Pillow>=12.0.0
+watchdog>=6.0.0

@@ -1,0 +1,10 @@
+This is a test file for steganography compression.
+This is a test file for steganography compression.
+This is a test file for steganography compression.
+This is a test file for steganography compression.
+Hello from CryptoZ! We are testing zlib compression.
+We want to see if it reduces the size before encryption.
+If it works, the data will be much smaller.
+This is a test file for steganography compression.
+This is a test file for steganography compression.
+This is a test file for steganography compression.

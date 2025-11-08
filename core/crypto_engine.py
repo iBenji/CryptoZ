@@ -909,6 +909,96 @@ class CryptoEngine:
                 'message': f"Folder decryption failed: {str(e)}"
             }
 
+    def encrypt_data(self, data: bytes, password: str, algorithm: str = 'fernet') -> bytes:
+        """
+        Encrypt raw binary data using the specified algorithm.
+        Uses existing encryption methods (e.g. encrypt_fernet).
+        
+        Args:
+            data: Binary data to encrypt
+            password: Password for key derivation
+            algorithm: Encryption algorithm to use (default: 'fernet')
+        
+        Returns:
+            Encrypted data (with salt/IV embedded)
+        
+        Raises:
+            RuntimeError: If encryption fails
+        """
+        if not data:
+            raise ValueError("Data to encrypt cannot be empty")
+        if not password or len(password) < 4:
+            raise ValueError("Password too short")
+
+        try:
+            # Mapping to internal encryptors
+            encryptors = {
+                'fernet': self.encrypt_fernet,
+                'aes_cbc': self.encrypt_aes_cbc,
+                'aes_gcm': self.encrypt_aes_gcm,
+                'aes_ctr': self.encrypt_aes_ctr,
+                'chacha20': self.encrypt_chacha20,
+                'des3': self.encrypt_des3,
+                'xor': self.encrypt_xor
+            }
+
+            if algorithm not in encryptors:
+                raise ValueError(f"Unsupported algorithm: {algorithm}")
+
+            encryptor = encryptors[algorithm]
+            
+            # Use the existing method
+            encrypted_data = encryptor(data, password)
+            return encrypted_data
+
+        except Exception as e:
+            self.logger.error(f"encrypt_data failed: {e}")
+            raise RuntimeError(f"Data encryption failed: {str(e)}") from e
+
+
+    def decrypt_data(self, encrypted_data: bytes, password: str, algorithm: str = 'fernet') -> bytes:
+        """
+        Decrypt raw binary data using the specified algorithm.
+        
+        Args:
+            encrypted_data: Encrypted data (with salt/IV embedded)
+            password: Password for key derivation
+            algorithm: Algorithm used for encryption
+        
+        Returns:
+            Decrypted binary data
+        
+        Raises:
+            RuntimeError: If decryption fails
+        """
+        if not encrypted_data:
+            raise ValueError("Encrypted data is empty")
+        if not password or len(password) < 4:
+            raise ValueError("Password too short")
+
+        try:
+            # Mapping to internal decryptors
+            decryptors = {
+                'fernet': self.decrypt_fernet,
+                'aes_cbc': self.decrypt_aes_cbc,
+                'aes_gcm': self.decrypt_aes_gcm,
+                'aes_ctr': self.decrypt_aes_ctr,
+                'chacha20': self.decrypt_chacha20,
+                'des3': self.decrypt_des3,
+                'xor': self.decrypt_xor
+            }
+
+            if algorithm not in decryptors:
+                raise ValueError(f"Unsupported algorithm: {algorithm}")
+
+            decryptor = decryptors[algorithm]
+            return decryptor(encrypted_data, password)
+
+        except Exception as e:
+            self.logger.error(f"decrypt_data failed: {e}")
+            raise RuntimeError(f"Data decryption failed: {str(e)}") from e
+
+
     def cleanup(self):
         """Secure cleanup of sensitive data"""
         with self._cache_lock:

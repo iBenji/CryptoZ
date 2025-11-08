@@ -1,0 +1,58 @@
+# Company Confidential Data (DO NOT FORWARD!)
+# File created for testing the CryptoZ vulnerability scanner
+
+## Employee Contact Information
+- Manager: Ivan Petrov (ivan.petrov@company.com, +7 (900) 123-45-67)
+- HR: Anna Sidorova (anna.sidorova@company.com, 8-900-987-65-43)
+- Finance: Oleg Kuznetsov (oleg.kuznetsov@company.com, +1-555-123-4567)
+
+## Financial Data
+- Card Number: 4532 1234 5678 9012 (Expires 12/25, CVV: 123)
+- Another Card Number: 5105105105105100
+- Social Security Number: 123-45-6789
+
+## Technical Data
+### API Keys and Tokens
+
+# AWS Keys (Do not use in production!)
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+# Google API Key
+GOOGLE_MAPS_API_KEY=AIzaSyCq59Dv3a-wa1234567890abcdef123456
+
+# GitHub Token
+GITHUB_TOKEN=ghp_abcdef1234567890abcdef1234567890abcd
+
+# Slack Token
+SLACK_TOKEN=xoxb-12345678901-1234567890123-AbCdEfGhIjKlMnOpQrStUvWx
+
+# Facebook Token
+FACEBOOK_TOKEN=EAACEdEose0cBAabcdef1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF
+
+## Critical Vulnerabilities
+-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEAwM2r6PZ9vL2JZvF86X8t7U1eR3fT2gS1YH5nJ4mK3lP2oN9i
+H8sG7fR1cV0xS2nD5vC4bW3aX9zE8vR7tY6uF5nD3sW2qT1oW9vR8pL7kZ6jH5t
+[This is not a real private key, continuation for demonstration purposes]
+-----END RSA PRIVATE KEY-----
+
+## Suspicious Links
+Warning! Urgently confirm your account via the link:
+https://goggle.com/verify-account?id=12345&token=abc123
+Or go to facebok.com/security-check
+
+## Phishing Email
+Dear Customer!
+
+URGENT! Your account will be blocked within 24 hours!
+Immediately verify your identity by clicking the link below.
+This is very important and requires immediate attention.
+
+Click here to verify your identity:
+https://amaz0n.com/account-verification?user=12345
+
+Best regards,
+Security Department
+
+P.S. Do not ignore this message, otherwise your access will be disabled!

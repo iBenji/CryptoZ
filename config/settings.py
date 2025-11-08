@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 import logging
@@ -40,6 +41,19 @@ class AppSettings:
             "level": "INFO",
             "max_file_size_mb": 10,
             "backup_count": 5
+        },
+        "statistics": {
+            "secure_folder": {
+                "files_encrypted": 0,
+                "files_decrypted": 0,
+                "sessions_count": 0,
+                "last_session": None
+            },
+            "general": {
+                "total_files_encrypted": 0,
+                "total_messages_encrypted": 0,
+                "last_backup": None
+            }
         }
     }
     
@@ -47,7 +61,9 @@ class AppSettings:
         self.config_file = config_file
         self._lock = Lock()
         self.logger = logging.getLogger(__name__)
+        self.ui_callback = None
         self.settings = self._load_settings()
+
     
     def _load_settings(self) -> Dict[str, Any]:
         """Load settings from file with enhanced error handling"""
@@ -109,6 +125,17 @@ class AppSettings:
                 pass
             return False
     
+    def _deep_merge(self, default, override):
+        """Рекурсивное объединение словарей"""
+        result = default.copy()
+        for key, value in override.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._deep_merge(result[key], value)
+            else:
+                result[key] = value
+        return result
+
+
     def get(self, key: str, default=None) -> Any:
         """Get setting value by key with enhanced error handling"""
         if not key or not isinstance(key, str):
@@ -269,3 +296,26 @@ class AppSettings:
         """Auto-save on context exit"""
         if exc_type is None:  # Only save if no exception occurred
             self.save_settings()
+
+    def set_ui_callback(self, callback):
+        """Установить callback для обновления интерфейса"""
+        self.ui_callback = callback
+
+    def increment_encrypted(self):
+        current = self.get("statistics.secure_folder.files_encrypted", 0)
+        self.set("statistics.secure_folder.files_encrypted", current + 1)
+        if self.ui_callback:
+            self.ui_callback()
+
+    def increment_decrypted(self):
+        current = self.get("statistics.secure_folder.files_decrypted", 0)
+        self.set("statistics.secure_folder.files_decrypted", current + 1)
+        if self.ui_callback:
+            self.ui_callback()
+
+    def increment_session(self):
+        current = self.get("statistics.secure_folder.sessions_count", 0)
+        self.set("statistics.secure_folder.sessions_count", current + 1)
+        self.set("statistics.secure_folder.last_session", datetime.now().strftime("%Y-%m-%d %H:%M"))
+        if self.ui_callback:
+            self.ui_callback()

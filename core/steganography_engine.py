@@ -1,8 +1,9 @@
-import base64
+#import base64
 import os
-import struct
+#import struct
 import logging
 from typing import Optional, Tuple, Dict, Any
+import zlib
 from PIL import Image, ImageFile
 import wave
 import hashlib
@@ -26,50 +27,61 @@ class SteganographyEngine:
         }
     
     def hide_in_image(self, data: bytes, carrier_path: str, output_path: str, 
-                    password: Optional[str] = None, method: str = 'lsb') -> Dict[str, Any]:
-        """Hide data in image - WITH DETAILED LOGGING"""
+                password: Optional[str] = None, method: str = 'lsb',
+                progress_callback=None, compress: bool = False,
+                log_callback=None) -> Dict[str, Any]:
+        """Hide data in image - WITH PROGRESS CALLBACK"""
         try:
+            if progress_callback:
+                progress_callback(0.0, "Checking carrier file...")
+
             if not os.path.exists(carrier_path):
                 return {"success": False, "error": "Carrier file not found"}
             
             original_size = os.path.getsize(carrier_path)
             
-            # Логируем оригинальные данные
-            self.logger.info(f"Original data: {data}")
-            self.logger.info(f"Original data hex: {data.hex()}")
-            self.logger.info(f"Original data length: {len(data)} bytes")
-            
-            # Шифруем данные если указан пароль
+            # Инициализация
+            is_compressed = False
+            is_encrypted = False
+            work_data = data  # будем модифицировать
+
+            # --- СЖАТИЕ: до шифрования ---
+            if compress:
+                compressed_data = zlib.compress(work_data)
+                if len(compressed_data) < len(work_data):
+                    work_data = compressed_data
+                    is_compressed = True
+                    if log_callback:
+                        log_callback(f"Compressed: {len(data)} -> {len(compressed_data)} bytes")
+                    else:
+                        self.logger.info(f"Compression: {len(data)} -> {len(compressed_data)} bytes")
+
+            # --- ШИФРОВАНИЕ: над сжатыми данными ---
             if password:
                 try:
-                    self.logger.info("=== ENCRYPTION PHASE ===")
-                    data_to_hide = self._encrypt_binary_data(data, password)
+                    data_to_hide = self._encrypt_binary_data(work_data, password)
                     is_encrypted = True
-                    self.logger.info(f"Encrypted data hex: {data_to_hide.hex()}")
-                    self.logger.info(f"Encrypted data length: {len(data_to_hide)} bytes")
-                    
-                    # ТЕСТ: можем ли расшифровать?
-                    test_decrypt = self._decrypt_binary_data(data_to_hide, password)
-                    self.logger.info(f"Decryption test: {test_decrypt == data}")
-                    if test_decrypt != data:
-                        self.logger.error("ENCRYPTION/DECRYPTION BROKEN!")
-                        return {"success": False, "error": "Encryption test failed"}
-                        
+                    if log_callback:
+                        log_callback(f"Encrypted: {len(work_data)} -> {len(data_to_hide)} bytes")
                 except Exception as e:
                     return {"success": False, "error": f"Encryption failed: {str(e)}"}
             else:
-                data_to_hide = data
-                is_encrypted = False
-            
-            # Проверяем размер данных
+                data_to_hide = work_data
+
+            # --- ПРОДОЛЖЕНИЕ: capacity, image load, etc. ---
+            if progress_callback:
+                progress_callback(0.1, "Calculating capacity...")
+
             max_data_size = self._calculate_max_image_capacity(carrier_path, method)
-            
             if len(data_to_hide) > max_data_size:
                 return {
                     "success": False, 
                     "error": f"Data too large. Max: {max_data_size}, Got: {len(data_to_hide)}"
                 }
-            
+
+            if progress_callback:
+                progress_callback(0.2, "Loading carrier image...")
+
             # Открываем изображение
             with Image.open(carrier_path) as img:
                 if img.mode not in ['RGB', 'RGBA']:
@@ -78,26 +90,27 @@ class SteganographyEngine:
                 img_copy = img.copy()
                 pixels = img_copy.load()
                 width, height = img_copy.size
-                
-                self.logger.info(f"Image size: {width}x{height}")
-                
+
                 # Добавляем заголовок
-                header = self._create_data_header(data_to_hide, method, is_encrypted)
+                header = self._create_data_header(data_to_hide, method, is_encrypted, is_compressed)
                 full_data = header + data_to_hide
                 
-                self.logger.info(f"Full data with header: {len(full_data)} bytes")
-                self.logger.info(f"Header hex: {header.hex()}")
-                
+                if progress_callback:
+                    progress_callback(0.3, "Starting data hiding...")
+
                 # Скрываем данные
-                self.logger.info("=== HIDING PHASE ===")
+                success = False
                 if method == 'lsb':
-                    success = self._hide_lsb_debug(pixels, width, height, full_data)
+                    success = self._hide_lsb_with_progress(pixels, width, height, full_data, progress_callback)
                 else:
-                    success = self._hide_lsb_debug(pixels, width, height, full_data)
+                    success = self._hide_lsb_with_progress(pixels, width, height, full_data, progress_callback)
                 
                 if not success:
                     return {"success": False, "error": "Failed to hide data in image"}
                 
+                if progress_callback:
+                    progress_callback(0.9, "Saving output image...")
+
                 # Сохраняем
                 img_copy.save(output_path, format='PNG')
                 
@@ -106,6 +119,9 @@ class SteganographyEngine:
                 
                 output_size = os.path.getsize(output_path)
                 
+                if progress_callback:
+                    progress_callback(1.0, "Hiding completed!")
+
                 return {
                     "success": True,
                     "output_path": output_path,
@@ -119,7 +135,73 @@ class SteganographyEngine:
                 
         except Exception as e:
             self.logger.error(f"Image steganography error: {e}")
+            if progress_callback:
+                progress_callback(0.0, f"Error: {str(e)}")
             return {"success": False, "error": str(e)}
+
+    def _hide_lsb_with_progress(self, pixels, width: int, height: int, data: bytes, 
+                          progress_callback=None) -> bool:
+        """LSB hiding with progress reporting"""
+        try:
+            data_bits = ''.join(format(byte, '08b') for byte in data)
+            total_bits = len(data_bits)
+            data_index = 0
+            
+            if total_bits == 0:
+                if progress_callback:
+                    progress_callback(1.0, "No data to hide (empty)")
+                return True
+
+            bits_per_update = max(1, total_bits // 20)  # 20 обновлений
+            last_update = 0
+
+            self.logger.info(f"Hiding {total_bits} bits in {width}x{height} image")
+
+            for y in range(height):
+                for x in range(width):
+                    if data_index >= total_bits:
+                        if progress_callback:
+                            progress_callback(1.0, "Hiding completed.")
+                        return True
+                    
+                    r, g, b = pixels[x, y][:3]
+                    new_r, new_g, new_b = r, g, b
+                    pixel_modified = False
+                    
+                    if data_index < total_bits:
+                        new_r = (r & 0xFE) | int(data_bits[data_index])
+                        if new_r != r: pixel_modified = True
+                        data_index += 1
+                    if data_index < total_bits:
+                        new_g = (g & 0xFE) | int(data_bits[data_index])
+                        if new_g != g: pixel_modified = True
+                        data_index += 1
+                    if data_index < total_bits:
+                        new_b = (b & 0xFE) | int(data_bits[data_index])
+                        if new_b != b: pixel_modified = True
+                        data_index += 1
+                    
+                    if pixel_modified:
+                        pixels[x, y] = (new_r, new_g, new_b)
+
+                    # Отправляем прогресс
+                    progress = data_index / total_bits
+                    if progress_callback and (data_index - last_update) >= bits_per_update:
+                        progress_callback(progress, f"Hiding... {int(progress * 100)}%")
+                        last_update = data_index
+            
+            # На случай, если цикл завершился, но не дошёл до 100%
+            if progress_callback and data_index < total_bits:
+                progress_callback(1.0, "Completed (partial)")
+
+            return data_index >= total_bits
+            
+        except Exception as e:
+            self.logger.error(f"LSB hiding progress error: {e}")
+            if progress_callback:
+                progress_callback(0.0, f"Error: {str(e)}")
+            return False
+
 
     def _hide_lsb_debug(self, pixels, width: int, height: int, data: bytes) -> bool:
         """LSB hiding with detailed debugging"""
@@ -215,66 +297,64 @@ class SteganographyEngine:
             return False
 
     def _extract_lsb_simple(self, pixels, width: int, height: int, data_size: int, offset: int = 0) -> bytes:
-        """Simple LSB extraction - FIXED OFFSET BUG"""
+        """Simple LSB extraction - FIXED for data_size = 0"""
         try:
+            if data_size == 0:
+                self.logger.info(f"Extracting 0 bytes (data_size=0)")
+                return b''
+
+            bits_to_skip = offset * 8
+            bits_needed = data_size * 8
+            total_bits_to_extract = bits_needed + bits_to_skip
+
+            self.logger.info(f"Extracting {data_size} bytes from offset {offset} (skipping {bits_to_skip} bits)")
+
             bits = []
-            bytes_needed = data_size
-            bits_needed = bytes_needed * 8
-            
-            self.logger.info(f"Extracting {bytes_needed} bytes from offset {offset}")
-            
             total_bits_extracted = 0
-            bits_to_skip = offset * 8  # Пропускаем offset байтов
-            
+
             for y in range(height):
                 for x in range(width):
-                    if total_bits_extracted >= bits_needed + bits_to_skip:
+                    if total_bits_extracted >= total_bits_to_extract:
                         break
-                    
+
                     r, g, b = pixels[x, y][:3]
-                    
-                    # Извлекаем биты из каждого канала
                     channel_bits = [r & 1, g & 1, b & 1]
-                    
+
                     for bit in channel_bits:
-                        # Пропускаем первые offset байтов
                         if total_bits_extracted < bits_to_skip:
                             total_bits_extracted += 1
                             continue
-                        
-                        # Сохраняем биты после offset
+
                         if len(bits) < bits_needed:
                             bits.append(str(bit))
                             total_bits_extracted += 1
                         else:
                             break
-                    
+
                     if len(bits) >= bits_needed:
                         break
-            
-            self.logger.info(f"Extracted {len(bits)} bits, needed {bits_needed}")
-            
+
+            self.logger.info(f"Extracted {len(bits)} bits (needed: {bits_needed})")
+
             if len(bits) < bits_needed:
-                self.logger.warning(f"Not enough bits: {len(bits)} < {bits_needed}")
+                self.logger.warning(f"Not enough bits extracted: {len(bits)} < {bits_needed}")
                 return None
-            
+
             # Convert bits to bytes
             byte_data = bytearray()
             for i in range(0, len(bits), 8):
                 if i + 8 <= len(bits):
                     byte_bits = ''.join(bits[i:i+8])
                     try:
-                        byte_value = int(byte_bits, 2)
-                        byte_data.append(byte_value)
+                        byte_data.append(int(byte_bits, 2))
                     except ValueError:
                         self.logger.error(f"Invalid bits: {byte_bits}")
                         continue
-            
+
             result = bytes(byte_data)
-            self.logger.info(f"Converted to {len(result)} bytes: {result.hex()}")
-            
+            self.logger.info(f"Converted to {len(result)} bytes: {result.hex() if result else '(empty)'}")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"LSB extraction error: {e}")
             return None
@@ -409,14 +489,22 @@ class SteganographyEngine:
         self.logger.info(f"Enhanced: Hidden {data_index} bits out of {total_bits}")
 
     def extract_from_image(self, stego_path: str, output_path: str, 
-                        password: Optional[str] = None) -> Dict[str, Any]:
-        """Extract hidden data from image - WITH DETAILED LOGGING"""
+                    password: Optional[str] = None,
+                    progress_callback=None,
+                    log_callback=None) -> Dict[str, Any]:
+        """Extract hidden data from image - WITH PROGRESS"""
         try:
+            if progress_callback:
+                progress_callback(0.0, "Loading stego file...")
+            if log_callback:
+                log_callback("Starting extraction process...")
+
             if not os.path.exists(stego_path):
-                return {"success": False, "error": "Stego file not found"}
-            
-            self.logger.info("=== EXTRACTION PHASE ===")
-            
+                error_msg = "Stego file not found"
+                if log_callback:
+                    log_callback(f"Error: {error_msg}")
+                return {"success": False, "error": error_msg}
+
             with Image.open(stego_path) as img:
                 if img.mode not in ['RGB', 'RGBA']:
                     img = img.convert('RGB')
@@ -424,71 +512,209 @@ class SteganographyEngine:
                 pixels = img.load()
                 width, height = img.size
                 
-                # Логируем первые 10 пикселей стего-изображения
-                self.logger.info("DEBUG: First 10 pixels from stego image:")
-                for y in range(min(2, height)):
-                    for x in range(min(5, width)):
-                        r, g, b = pixels[x, y][:3]
-                        self.logger.info(f"  Pixel ({x},{y}): R={r:08b}, G={g:08b}, B={b:08b}")
-                
+                if progress_callback:
+                    progress_callback(0.2, "Extracting header...")
+                if log_callback:
+                    log_callback("Extracting header (64 bytes)...")
+
                 # Извлекаем заголовок
-                header_data = self._extract_lsb_simple(pixels, width, height, 64)
-                
+                header_data = self._extract_lsb_with_progress(pixels, width, height, 64, offset=0, progress_callback=progress_callback)
                 if not header_data:
-                    return {"success": False, "error": "Failed to extract header data"}
-                
-                self.logger.info(f"DEBUG: Extracted header: {header_data.hex()}")
-                
+                    error_msg = "Failed to extract header data"
+                    if log_callback:
+                        log_callback(f"{error_msg}")
+                    return {"success": False, "error": error_msg}
+
                 header = self._parse_data_header(header_data)
-                
                 if not header:
-                    return {"success": False, "error": "No hidden data found or invalid header"}
-                
-                # Извлекаем основные данные
+                    error_msg = "Invalid or missing header"
+                    if log_callback:
+                        log_callback(f"{error_msg}")
+                    return {"success": False, "error": error_msg}
+
+                if log_callback:
+                    log_callback(f"Header parsed: size={header['data_size']}, enc={header.get('encrypted')}, cmp={header.get('compressed')}")
+
                 data_size = header['data_size']
                 is_encrypted = header.get('encrypted', False)
-                
-                self.logger.info(f"Extracting {data_size} bytes, encrypted: {is_encrypted}")
-                
-                hidden_data = self._extract_lsb_simple(pixels, width, height, data_size, 64)
-                
+                is_compressed = header.get('compressed', False)
+
+                if data_size == 0:
+                    if log_callback:
+                        log_callback("No data to extract (empty file)")
+                    with open(output_path, 'wb') as f:
+                        f.write(b'')
+                    if progress_callback:
+                        progress_callback(1.0, "Done (empty)")
+                    return {
+                        "success": True,
+                        "output_path": output_path,
+                        "data_size": 0,
+                        "encrypted": is_encrypted,
+                        "compressed": is_compressed
+                    }
+
+                if progress_callback:
+                    progress_callback(0.4, f"Extracting {data_size} bytes...")
+                if log_callback:
+                    log_callback(f"Extracting hidden data ({data_size} bytes)...")
+
+                # Извлекаем данные
+                hidden_data = self._extract_lsb_with_progress(
+                    pixels, width, height, data_size, offset=64, progress_callback=progress_callback
+                )
                 if not hidden_data:
-                    return {"success": False, "error": "Failed to extract hidden data"}
-                
-                self.logger.info(f"DEBUG: Extracted hidden data: {hidden_data.hex()}")
-                self.logger.info(f"DEBUG: Hidden data length: {len(hidden_data)} bytes")
-                
-                # Обрабатываем шифрование
+                    error_msg = "Failed to extract hidden data"
+                    if log_callback:
+                        log_callback(f"{error_msg}")
+                    return {"success": False, "error": error_msg}
+
                 final_data = hidden_data
+
+                # Расшифровка
                 if is_encrypted:
                     if not password:
-                        return {"success": False, "error": "Password required for decryption"}
-                    
+                        error_msg = "Password required for decryption"
+                        if log_callback:
+                            log_callback(f"{error_msg}")
+                        return {"success": False, "error": error_msg}
                     try:
-                        self.logger.info("=== DECRYPTION PHASE ===")
+                        if progress_callback:
+                            progress_callback(0.7, "Decrypting...")
+                        if log_callback:
+                            log_callback("Decrypting data...")
                         final_data = self._decrypt_binary_data(hidden_data, password)
-                        self.logger.info(f"DEBUG: Decrypted data: {final_data.hex()}")
-                        self.logger.info(f"DEBUG: Decrypted as text attempt: {final_data}")
+                        if log_callback:
+                            log_callback(f"Decrypted: {len(final_data)} bytes")
                     except Exception as e:
-                        return {"success": False, "error": f"Decryption failed: {str(e)}"}
-                
-                # Сохраняем извлеченные данные
-                with open(output_path, 'wb') as f:
-                    f.write(final_data)
-                
-                self.logger.info(f"Final data saved: {len(final_data)} bytes")
-                
+                        error_msg = f"Decryption failed: {str(e)}"
+                        if log_callback:
+                            log_callback(f"{error_msg}")
+                        return {"success": False, "error": error_msg}
+
+                # Распаковка — ТОЛЬКО ОДИН РАЗ!
+                if is_compressed:
+                    try:
+                        if progress_callback:
+                            progress_callback(0.85, "Decompressing...")
+                        if log_callback:
+                            log_callback(f"Decompressing {len(final_data)} bytes...")
+                        decompressed_data = zlib.decompress(final_data)
+                        final_data = decompressed_data
+                        if log_callback:
+                            log_callback(f"Decompressed: {len(final_data)} bytes")
+                    except zlib.error as e:
+                        error_msg = "Corrupted or invalid compressed data"
+                        if log_callback:
+                            log_callback(f"Decompression failed: {error_msg}")
+                        return {"success": False, "error": error_msg}
+                    except Exception as e:
+                        error_msg = f"Unexpected decompression error: {str(e)}"
+                        if log_callback:
+                            log_callback(f"{error_msg}")
+                        return {"success": False, "error": error_msg}
+
+                # Сохранение
+                try:
+                    if progress_callback:
+                        progress_callback(0.95, "Saving output...")
+                    with open(output_path, 'wb') as f:
+                        f.write(final_data)
+                    if log_callback:
+                        log_callback(f"Saved: {len(final_data)} bytes -> {os.path.basename(output_path)}")
+                except Exception as e:
+                    error_msg = f"Save failed: {str(e)}"
+                    if log_callback:
+                        log_callback(f"{error_msg}")
+                    return {"success": False, "error": error_msg}
+
+                if progress_callback:
+                    progress_callback(1.0, "Extraction completed!")
+                if log_callback:
+                    log_callback("Extraction successful!")
+
                 return {
                     "success": True,
                     "output_path": output_path,
                     "data_size": len(final_data),
-                    "encrypted": is_encrypted
+                    "encrypted": is_encrypted,
+                    "compressed": is_compressed
                 }
-                
+
         except Exception as e:
-            self.logger.error(f"Image extraction error: {e}")
+            error_msg = f"Unexpected error: {str(e)}"
+            self.logger.error(error_msg)
+            if log_callback:
+                log_callback(f"{error_msg}")
+            if progress_callback:
+                progress_callback(0.0, "Failed")
             return {"success": False, "error": str(e)}
-    
+
+
+    def _extract_lsb_with_progress(self, pixels, width: int, height: int, data_size: int, 
+                             offset: int = 0, progress_callback=None) -> bytes:
+        """LSB extraction with progress reporting"""
+        try:
+            if data_size == 0:
+                return b''
+
+            bits_to_skip = offset * 8
+            bits_needed = data_size * 8
+            total_bits = bits_needed + bits_to_skip
+            bits = []
+            total_bits_extracted = 0
+
+            bits_per_update = max(1, total_bits // 20)
+            last_update = 0
+
+            for y in range(height):
+                for x in range(width):
+                    if total_bits_extracted >= total_bits:
+                        break
+
+                    r, g, b = pixels[x, y][:3]
+                    channel_bits = [r & 1, g & 1, b & 1]
+
+                    for bit in channel_bits:
+                        if total_bits_extracted < bits_to_skip:
+                            total_bits_extracted += 1
+                            continue
+
+                        if len(bits) < bits_needed:
+                            bits.append(str(bit))
+                            total_bits_extracted += 1
+                        else:
+                            break
+
+                    if len(bits) >= bits_needed:
+                        break
+
+                    # Прогресс
+                    if progress_callback and (total_bits_extracted - last_update) >= bits_per_update:
+                        progress = total_bits_extracted / total_bits
+                        progress_callback(min(0.99, progress), f"Extracting... {int(progress * 100)}%")
+                        last_update = total_bits_extracted
+
+            if len(bits) < bits_needed:
+                return None
+
+            # Convert bits to bytes
+            byte_data = bytearray()
+            for i in range(0, len(bits), 8):
+                if i + 8 <= len(bits):
+                    byte_bits = ''.join(bits[i:i+8])
+                    try:
+                        byte_data.append(int(byte_bits, 2))
+                    except ValueError:
+                        continue
+
+            return bytes(byte_data)
+            
+        except Exception as e:
+            self.logger.error(f"LSB extraction progress error: {e}")
+            return None
+
+
     def _extract_lsb_improved(self, pixels, width: int, height: int, data_size: int, offset: int = 0) -> bytes:
         """Improved LSB extraction with data integrity check"""
         try:
@@ -706,40 +932,39 @@ class SteganographyEngine:
         
         return bytes(byte_data[:data_size])
     
-    def _create_data_header(self, data: bytes, method: str, encrypted: bool) -> bytes:
-        """Create header with data information"""
-        # Header structure: [magic][data_size][method][encrypted][reserved][hash]
-        magic = b'STEGO'  # 5 bytes
-        data_size = len(data).to_bytes(4, 'big')  # 4 bytes
-        method_byte = method.encode('ascii').ljust(10, b'\x00')[:10]  # 10 bytes
-        encrypted_byte = b'\x01' if encrypted else b'\x00'  # 1 byte
-        reserved = b'\x00' * 40  # 40 bytes reserved
-        
-        # Добавляем хеш для проверки целостности
-        data_hash = hashlib.sha256(data).digest()[:4]  # 4 bytes hash
-        
-        return magic + data_size + method_byte + encrypted_byte + reserved + data_hash
+    def _create_data_header(self, data: bytes, method: str, encrypted: bool, compressed: bool = False) -> bytes:
+        """Create header with compression flag"""
+        magic = b'STEGO'
+        data_size = len(data).to_bytes(4, 'big')
+        method_byte = method.encode('ascii').ljust(10, b'\x00')[:10]
+        encrypted_byte = b'\x01' if encrypted else b'\x00'
+        compressed_byte = b'\x01' if compressed else b'\x00'
+        reserved = b'\x00' * 39  # теперь 39 байт (было 40)
+        data_hash = hashlib.sha256(data).digest()[:4]
+
+        return magic + data_size + method_byte + encrypted_byte + compressed_byte + reserved + data_hash
+
 
     def _parse_data_header(self, header_data: bytes) -> Optional[Dict[str, Any]]:
-        """Parse data header and validate"""
         if len(header_data) < 64:
             return None
-        
-        magic = header_data[:5]
-        if magic != b'STEGO':
+        if header_data[:5] != b'STEGO':
             return None
-        
+
         data_size = int.from_bytes(header_data[5:9], 'big')
         method = header_data[9:19].rstrip(b'\x00').decode('ascii', errors='ignore')
         encrypted = header_data[19] == 1
-        data_hash = header_data[60:64]  # Последние 4 байта - хеш
-        
+        compressed = header_data[20] == 1  # ← читаем сжатие
+        data_hash = header_data[60:64]
+
         return {
             'data_size': data_size,
             'method': method,
             'encrypted': encrypted,
+            'compressed': compressed,
             'data_hash': data_hash
         }
+
     
     def _calculate_max_image_capacity(self, image_path: str, method: str) -> int:
         """Calculate maximum data capacity for image"""

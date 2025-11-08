@@ -1,236 +1,149 @@
-# CryptoZ - Advanced Encryption Tool
+# CryptoZ — Advanced Encryption & Security Suite
 
-![CryptoZ](https://img.shields.io/badge/Version-2.1.6S-blue)
-![Python](https://img.shields.io/badge/Python-3.1B-green)
+![CryptoZ](https://img.shields.io/badge/Version-2.2.0-blue)
+![Python](https://img.shields.io/badge/Python-3.8%2B-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen)
+![GUI](https://img.shields.io/badge/GUI-Dear%20PyGUI-purple)
 
-A powerful, modern encryption utility built with Dear PyGui that provides multiple encryption algorithms for files, messages, and source code protection.
+> 🔐 **From file encryption to policy-driven security — CryptoZ is your all-in-one cryptographic toolkit.**
 
-<img width="883" height="567" alt="ttt" src="https://github.com/user-attachments/assets/02e39dd9-f870-4f85-b09c-c72643e382b2" />
-<img width="883" height="567" alt="ttts" src="https://github.com/user-attachments/assets/022ccf3c-9426-494c-9704-165acb9878a4" />
+CryptoZ is a **modern, cross-platform encryption suite** built with `Dear PyGUI`, designed for **developers, security professionals, and privacy-conscious users**. It combines **military-grade cryptography**, **real-time folder protection**, **steganography**, **policy automation**, and **advanced analysis** in a single powerful interface.
 
-## 🚀 Features
+---
 
-### 🔐 Multi-Algorithm Support
-- **Fernet (AES-128)** - Recommended secure algorithm
-- **AES-CBC (256-bit)** - Standard block cipher mode
-- **AES-GCM (256-bit)** - Authenticated encryption
-- **AES-CTR (256-bit)** - Stream cipher mode
-- **ChaCha20** - Modern stream cipher
-- **Triple DES** - Legacy algorithm support
-- **XOR** - Basic encryption for educational purposes
+## 🚀 Core Features
 
-### 📁 File Operations
-- Encrypt/decrypt any file type with automatic format detection
-- Smart output naming (.encrypted → .decrypted)
-- Secure key derivation using PBKDF2 with configurable iterations
-- Batch operation support with progress tracking
-- File size limits and validation
+### 🔐 Multi-Algorithm Cryptography
+- **Fernet (AES-128-GCM)** – Authenticated, secure-by-default
+- **AES-256** – CBC, GCM, CTR modes
+- **ChaCha20-Poly1305** – Fast, modern stream cipher
+- **Triple DES** – Legacy compatibility
+- **XOR** – Educational/demo use
+- All with **PBKDF2-HMAC-SHA256** (310,000+ iterations)
 
-### 💬 Message Encryption
-- Real-time text message encryption
-- Support for all available algorithms
-- Base64 encoded output for easy sharing
-- Copy-to-clipboard functionality
+---
+
+### 📁 Secure Folder — Live Encryption Vault
+> Turn any folder into a self-encrypting workspace.
+
+- **Auto-encrypt**: Files added → instantly encrypted
+- **Decrypt on-demand**: Opens in `.temp_decrypted`
+- **Edit & Save Back**: Auto-re-encrypt on save (even in Word, Excel, Notepad++)
+- **Auto-Clean**: Temp files erased on stop or exit
+- **Auto-Lock**: Full cleanup when app closes
+- **Real-time monitoring**: Powered by `watchdog`
+
+> 💡 No more manual steps — just work securely.
+
+---
+
+### 📜 Policy Engine — Automated Security Rules
+> Define once, encrypt forever.
+
+- **Create policies**: "Encrypt all `.txt` in `Documents\Secrets`"
+- **Flexible targets**: Single files, folders, path lists
+- **Pattern matching**: `*.pdf`, `config_*.json`, `**/private/*`
+- **Auto-apply**: Rules trigger on file save or startup
+- **Enable/Disable/Toggle**: Visual management
+- **Batch execution**: Apply policies to existing files
+
+> Ideal for compliance, automation, and recurring tasks.
+
+---
+
+### 🔁 Batch Folder Encryption
+> Encrypt entire directory trees — recursively.
+
+- **Preserves folder structure**
+- **Progress tracking** with real-time status
+- **Background processing** — UI stays responsive
+- **Error logging** — detailed per-file report
+- **Comprehensive logs** — every operation recorded
+- Supports **allowed extensions**, **size limits**, **auto-backups**
+
+---
+
+### 🖼️ Steganography Suite
+> Hide data in plain sight.
+
+#### 🕵️ Cryptor
+- **Hide in images**: PNG, JPG (auto-converted to PNG), BMP
+- **Hide in audio**: WAV files
+- **LSB & Enhanced LSB**: Max capacity, minimal distortion
+- **Encrypt before hiding**: Double protection
+- **Capacity calculator**: See how much you can hide
+
+#### 🔍 Analyzer
+- **Detect hidden content** in files
+- **Extract & decrypt** hidden data
+- **File analysis**: entropy, noise, pattern detection
+
+---
+
+### 💬 Message & Code Encryption
+#### 📝 Message Encryption
+- Real-time text encryption
+- Base64 output for sharing
+- Copy-to-clipboard
 - Secure memory handling
 
-### 💻 Code Protection
-- Source code obfuscation with variable renaming
-- Base64 encoding with markers for code regions
-- XOR encryption with key derivation
-- Selective region encryption
-- Support for multiple programming languages
+#### 💻 Code Protection
+- **Obfuscation**: Rename variables
+- **Region-based encryption**: Protect key sections
+- **Auto-select**: Encrypt entire file
+- **Supports**: Python, JS, C++, HTML, etc.
 
-### 🔍 Security Analysis
-- File encryption detection through entropy analysis
-- Algorithm signature recognition
-- Password strength assessment with real-time feedback
-- Secure password generation
-- File integrity checking
+---
 
-### 🔑 Security Features
-- Secure password generation
-- Password strength assessment
-- Key derivation with configurable iterations
-- Secure memory handling
+### 🔍 Security Scanner
+> Find secrets before attackers do.
 
-### Policy System
-- Creating encryption policies with rules
-- Policy management (create, delete, enable/disable)
-- Automatic application to files and folders
-- Flexible targets - single files, folders, path lists
-- File pattern support for filtering
-- Visual management through intuitive interface
+- **Scan folders** for passwords, API keys, credentials
+- **Entropy analysis** to detect encrypted or obfuscated files
+- **Risk scoring**: High/Medium/Low
+- **JSON reports** with details
+- **Dashboard view** in UI
 
-### Batch Operations (Folder Encryption)
-- Recursive folder processing with pattern matching
-- Progress tracking and real-time status updates
-- Error handling with detailed error reporting
-- Preservation of directory structure
-- Background processing to keep UI responsive
-- Comprehensive logging of all operations
-  
-### Steganography cryptor and analyzer
-- Data hiding in images - LSB and enhanced LSB methods
-- Data hiding in audio - WAV files
-- Encryption before hiding - additional protection
-- Hidden data extraction - with decryption support
-- File analysis - steganography detection
-- Capacity calculation - automatic hiding possibility check
-- Multiple format support - PNG, JPG, BMP, WAV
+---
+
+### 📊 Usage Statistics
+> Track your security journey.
+
+- **Files encrypted/decrypted**
+- **Active sessions**
+- **Last session time**
+- **Real-time UI updates**
+- **Saved in `cryptoz_config.json`**
+
+> See `About → 📊 Stats` for live dashboard.
+
+---
+
+### 🛠️ User Experience
+- **Modern UI**: Categorized tabs — Files, Security, Tools, System
+- **Auto-paths**: Input → Output generated automatically
+- **Drag & Drop**: Drop files → encrypt
+- **Password strength meter**: Real-time feedback
+- **Background operations**: No UI freezing
+- **Full logging**: Copy, clear, export
+
+---
 
 ## 🛠️ Installation
 
 ### Prerequisites
-- Python 3.8 or higher
-- pip package manager
+- Python 3.8+
+- `pip`
 
-### Step-by-Step Installation
-## Method 1: From Source
-1. **Clone or download the project**
-   ```
-   git clone https://github.com/iBenji/CryptoZ.git
-   cd CryptoZ
-   ```
-2. **Install dependencies**
-   ```
-   pip install -r requirements.txt
-   ```
-3. **Run the application**
-   ```
-   python main.py
-   ```
-## Method 2: Standalone Executable (Recommended)
-1. **Build the executable**
-   ```
-   python build.py
-   ```
-2. **Find the executable in the [dist] folder**
-   ```
-   The executable contains all dependencies and is ready to run
-   ```
-## 🛠️ Usage
+### Method 1: From Source
+```bash
+git clone https://github.com/iBenji/CryptoZ.git
+cd CryptoZ
+pip install -r requirements.txt
+python main.py
 
-### File Encryption Tab
-1. Select Input File: Click "Browse" to choose a file to encrypt/decrypt
-2. Output Path: Automatically generated with appropriate extension (.encrypted/.decrypted)
-3. Choose Algorithm: Select from 7 encryption algorithms
-4. Set Password: Enter a secure password (use the generator for strong passwords)
-5. Execute: Click "Encrypt File" or "Decrypt File"
-
-### Message Encryption Tab
-1. Enter Text: Type or paste your message in the input area
-2. Select Algorithm: Choose your preferred encryption method
-3. Set Password: Create a secure password
-4. Encrypt/Decrypt: Transform your message with a single click
-
-### Code Encryption Tab
-1. Paste Source Code: Enter your code in the input area
-2. Choose Method: Select between obfuscation, Base64, or XOR encryption
-3. Set Positions: Define the code region to encrypt (use "Auto Select" for entire code)
-4. Encrypt/Decrypt: Protect or restore your code
-
-### File Analyzer Tab
-1. Select File: Choose any file for analysis
-2. Analyze: Detect encryption algorithms and entropy levels
-3. View Results: See detailed analysis including confidence scores
-
-## 🏗️ Project Structure
-   ```
-CryptoZ/
-├── main.py                 # Application entry point
-├── create_icon.py          # Icon generation utility
-├── build.py               # Build script for executables
-├── requirements.txt       # Python dependencies
-├── cryptoz_config.json   # Application settings
-├── assets/
-│   ├── icon.ico          # Windows icon
-│   └── icon.png          # Cross-platform icon
-├── core/
-│   ├── crypto_engine.py  # Encryption algorithms
-│   ├── security_utils.py # Password utilities
-│   └── code_analyzer.py  # Code processing
-├── gui/
-│   └── main_window.py    # User interface
-└── config/
-    └── settings.py       # Configuration management
-   ```
-## 🔒 Security Features
-### Key Derivation
-- PBKDF2-HMAC-SHA256 with configurable iterations (default: 310,000)
-- Cryptographically secure random salt generation
-- Secure memory clearing of sensitive data
-
-### Encryption Standards
-- Fernet: AES-128 in CBC mode with PKCS7 padding, HMAC authentication
-- AES: 256-bit keys with proper IV/nonce generation
-- ChaCha20: 256-bit keys with 96-bit nonce
-- Industry-standard cryptographic libraries (cryptography, pycryptodome)
-
-### Safety Measures
-- Input validation and sanitization
-- Protection against path traversal attacks
-- Secure file handling with error recovery
-- Automatic cleanup of temporary files
-
-### Configuration
-The application settings can be customized in cryptoz_config.json:
-   ```
-{
-  "security": {
-    "default_algorithm": "fernet",
-    "key_derivation_iterations": 310000,
-    "password_length": 16
-  },
-  "ui": {
-    "show_password_strength": true,
-    "confirm_before_operations": true
-  },
-  "files": {
-    "default_output_extension": ".encrypted",
-    "max_file_size_mb": 100
-  }
-}
-   ```
-## 🐛 Troubleshooting
-### Common Issues
-**File not found errors**
-- Ensure file paths are accessible
-- Check read/write permissions
-- Verify file exists
-
-**Encryption/decryption failures**
-- Confirm correct password
-- Check algorithm compatibility
-- Verify file integrity
-
-**Application crashes**
-- Ensure all dependencies are installed
-- Check system resources
-- Review log files in logs/ directory
-
-### Logs and Debugging
-- Application logs: logs/cryptoz.log
-- Debug logs: logs/cryptoz_debug.log
-- Configuration: cryptoz_config.json
-
-## 🛡️ Security Notice
-- This tool is designed for educational and professional use
-- Always keep backups of important data
-- Use strong, unique passwords
-- Review the source code for transparency
-- The developers are not responsible for data loss
-
-## 🤝 Contributing
-We welcome contributions! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-
-5. Submit a pull request
-
-
-
-
-
+### Method 2: Standalone Executable
+```bash
+python build.py
+# → Executable in /dist (Windows)

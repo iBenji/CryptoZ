@@ -5,7 +5,12 @@ import os
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 from gui.main_window import MainWindow
+import atexit
 
+try:
+    from core.vulnerability_scanner import VulnerabilityScanner
+except ImportError as e:
+    print(f"Warning: Vulnerability scanner not available: {e}")
 
 def setup_logging():
     """Logging configuration"""
@@ -47,6 +52,14 @@ def check_dependencies():
         print(f"Missing dependency: {e}")
         return False
 
+def _on_exit_safe(app):
+    if app and hasattr(app, "secure_folder_manager"):
+        try:
+            app.secure_folder_manager.stop_monitoring()
+            app.secure_folder_manager.cleanup_temp_files()
+            print("Auto-lock: temp files cleaned on exit")
+        except:
+            print("Auto-lock cleanup failed")
 
 def main():
     """Main application entry point"""
@@ -66,7 +79,7 @@ def main():
         
         # Setup application icon
         setup_icon()
-        
+        atexit.register(_on_exit_safe, app)
         app.run()
         
         logger.info("Application shutdown completed")
