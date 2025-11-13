@@ -1,6 +1,6 @@
 # CryptoZ — Advanced Encryption & Security Suite
 
-![CryptoZ](https://img.shields.io/badge/Version-2.2.0-blue)
+![CryptoZ](https://img.shields.io/badge/Version-2.3.0-blue)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
@@ -147,3 +147,4 @@ python main.py
 ```bash
 python build.py
 # → Executable in /dist (Windows)
+
