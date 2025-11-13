@@ -3,7 +3,6 @@ import logging
 import sys
 import os
 from pathlib import Path
-from logging.handlers import RotatingFileHandler
 from gui.main_window import MainWindow
 import atexit
 

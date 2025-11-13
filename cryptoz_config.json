@@ -30,9 +30,11 @@
         "key_derivation_iterations": 310000,
         "max_password_length": 128,
         "min_password_length": 8,
-        "password_length": 16,
+        "password_length": 32,
         "secure_memory_clearing": true,
-        "session_timeout_minutes": 30
+        "security.use_key_file": true,
+        "session_timeout_minutes": 30,
+        "use_key_file": true
     },
     "statistics": {
         "general": {

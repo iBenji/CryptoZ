@@ -17,7 +17,8 @@ class AppSettings:
             "min_password_length": 8,
             "max_password_length": 128,
             "secure_memory_clearing": True,
-            "session_timeout_minutes": 30
+            "session_timeout_minutes": 30,
+            "security.use_key_file": True,
         },
         "ui": {
             "show_password_strength": True,
